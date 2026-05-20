@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Website Builder</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 0; display: flex; height: 100vh; }
+        #sidebar { width: 250px; background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; }
+        #canvas-container { flex: 1; padding: 20px; background: #fafafa; display: flex; flex-direction: column; }
+        #canvas { flex: 1; border: 2px dashed #aaa; background: white; padding: 20px; overflow-y: auto; }
+        button { display: block; width: 100%; padding: 10px; margin-bottom: 10px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; }
+        button.publish { background: #28a745; margin-top: 20px; }
+        .element { padding: 10px; margin: 5px 0; border: 1px dashed #eee; position: relative; }
+        .element:hover { border-color: red; }
+        .delete-btn { position: absolute; right: 5px; top: 5px; background: red; color: white; border: none; font-size: 10px; cursor: pointer; padding: 2px 5px; }
+        h1, p, img { margin: 10px 0; }
+        img { max-width: 100%; height: auto; display: block; }
+        #link-alert { display: none; padding: 15px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; margin-bottom: 15px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR: Controls for building -->
+    <div id="sidebar">
+        <h3>Add Elements</h3>
+        <button onclick="addElement('heading')">➕ Large Headline</button>
+        <button onclick="addElement('paragraph')">➕ Text Paragraph</button>
+        <button onclick="addElement('image')">➕ Image Placeholder</button>
+        
+        <button class="publish" onclick="publishSite()">🚀 Publish Website</button>
+    </div>
+
+    <!-- CANVAS: Where the live building happens -->
+    <div id="canvas-container">
+        <div id="link-alert">
+            🎉 Site published! Share this link: <a id="pub-link" href="#" target="_blank"></a>
+        </div>
+        <h3>Your Website Canvas</h3>
+        <div id="canvas"></div>
+    </div>
+
+    <script>
+        // Array to store the website structure
+        let siteData = [];
+
+        // Function to add elements to the canvas data
+        function addElement(type) {
+            let content = "";
+            
+            if (type === 'heading') content = prompt("Enter heading text:", "Welcome to my website!");
+            if (type === 'paragraph') content = prompt("Enter paragraph text:", "This is a website built with my own platform.");
+            if (type === 'image') content = prompt("Enter image URL:", "https://picsum.photos");
+
+            if (content === null || content.trim() === "") return; // Cancel if empty
+
+            siteData.push({ type: type, content: content });
+            renderCanvas();
+        }
+
+        // Function to delete an element
+        function deleteElement(index) {
+            siteData.splice(index, 1);
+            renderCanvas();
+        }
+
+        // Function to draw the elements inside the builder canvas
+        function renderCanvas() {
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = ''; // Clear canvas
+
+            siteData.forEach((item, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'element';
+                
+                // Add delete button to element wrapper
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.innerText = 'X';
+                delBtn.onclick = () => deleteElement(index);
+                wrapper.appendChild(delBtn);
+
+                // Create visual elements
+                if (item.type === 'heading') {
+                    const el = document.createElement('h1');
+                    el.innerText = item.content;
+                    wrapper.appendChild(el);
+                } else if (item.type === 'paragraph') {
+                    const el = document.createElement('p');
+                    el.innerText = item.content;
+                    wrapper.appendChild(el);
+                } else if (item.type === 'image') {
+                    const el = document.createElement('img');
+                    el.src = item.content;
+                    wrapper.appendChild(el);
+                }
+
+                canvas.appendChild(wrapper);
+            });
+        }
+
+        // Function to simulate publishing by saving data to LocalStorage
+        function publishSite() {
+            if (siteData.length === 0) {
+                alert("Add some elements to your canvas before publishing!");
+                return;
+            }
+
+            // In a real app, this goes to a real server database.
+            // Here, we save to your browser storage under a unique ID.
+            const siteId = "site_" + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem(siteId, JSON.stringify(siteData));
+
+            // Generate viewer URL using the current file location
+            const viewerUrl = window.location.href.replace('index.html', '') + 'viewer.html?id=' + siteId;
+            
+            // Show the success banner with the link
+            document.getElementById('pub-link').href = viewerUrl;
+            document.getElementById('pub-link').innerText = viewerUrl;
+            document.getElementById('link-alert').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
